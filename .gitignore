@@ -1,0 +1,7 @@
+/PRG381Group8_WellnessManagementDesktopApplication/nbproject/private/
+/PRG381Group8_WellnessManagementDesktopApplication/build/
+dist/
+*.class
+*.log
+derby.log
+.DS_Store
