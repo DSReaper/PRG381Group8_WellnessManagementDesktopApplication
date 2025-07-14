@@ -5,22 +5,34 @@
 package main;
 
 import javax.swing.SwingUtilities;
+import javax.swing.JOptionPane;
+import model.DBConnection;
 import view.MainDashboard;
+import java.sql.Connection;
 
 public class AppLauncher {
 
     public static void main(String[] args) {
-        // Launch the GUI on the Event Dispatch Thread
+        // Run GUI on the Event Dispatch Thread
         SwingUtilities.invokeLater(() -> {
             try {
-                // Set the Look & Feel (optional, for consistent appearance)
+                // Set the system Look & Feel
                 javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
             } catch (Exception e) {
-                System.out.println("Warning: Failed to set Look and Feel");
+                System.out.println("Warning: Failed to set Look and Feel.");
             }
 
-            // Start the main dashboard
-            new MainDashboard().setVisible(true);
+            // Check DB Connection before launching app
+            Connection conn = DBConnection.getConnection();
+            if (conn != null) {
+                System.out.println("Database connected successfully.");
+                new MainDashboard().setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(null,
+                        "Failed to connect to the database.\nPlease make sure JavaDB is running.",
+                        "Database Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         });
     }
 }
