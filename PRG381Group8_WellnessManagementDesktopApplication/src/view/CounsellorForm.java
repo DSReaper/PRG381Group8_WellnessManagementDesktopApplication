@@ -3,6 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package view;
+import javax.swing.JOptionPane;
+
 
 /**
  *
@@ -28,21 +30,123 @@ public class CounsellorForm extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jLabel1 = new javax.swing.JLabel();
+        nameField = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
+        specializationField = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        availabilityCheckBox = new javax.swing.JCheckBox();
+        saveButton = new javax.swing.JButton();
+        clearButton = new javax.swing.JButton();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        jLabel1.setText("Name:");
+
+        nameField.setText("jTextField1");
+
+        jLabel2.setText("Specialization:");
+
+        specializationField.setText("jTextField1");
+
+        jLabel3.setText("Available:");
+
+        availabilityCheckBox.setText("Yes:");
+
+        saveButton.setText("Save");
+        saveButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveButtonActionPerformed(evt);
+            }
+        });
+
+        clearButton.setText("Clear");
+        clearButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(nameField, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(jLabel2)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(specializationField, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(25, 25, 25)
+                        .addComponent(availabilityCheckBox, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(47, 47, 47)
+                        .addComponent(saveButton)
+                        .addGap(28, 28, 28)
+                        .addComponent(clearButton)))
+                .addContainerGap(181, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(14, 14, 14)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(nameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(specializationField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(availabilityCheckBox))
+                .addGap(30, 30, 30)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(saveButton)
+                    .addComponent(clearButton))
+                .addGap(133, 133, 133))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
+        String name = nameField.getText().trim();
+        String spec = specializationField.getText().trim();
+        boolean available = availabilityCheckBox.isSelected();
+
+        if (name.isEmpty() || spec.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill in all fields.");
+            return;
+        }
+
+        model.Counsellor counsellor = new model.Counsellor(name, spec, available);
+        model.CounsellorDAO dao = new model.CounsellorDAO();
+
+        if (dao.addCounsellor(counsellor)) {
+            JOptionPane.showMessageDialog(this, "Counselor added successfully!");
+            nameField.setText("");
+            specializationField.setText("");
+            availabilityCheckBox.setSelected(false);
+        } else {
+            JOptionPane.showMessageDialog(this, "Error adding counselor.");
+        }
+
+    }//GEN-LAST:event_saveButtonActionPerformed
+
+    private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
+        nameField.setText("");
+        specializationField.setText("");
+        availabilityCheckBox.setSelected(false);
+    }//GEN-LAST:event_clearButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -70,5 +174,13 @@ public class CounsellorForm extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox availabilityCheckBox;
+    private javax.swing.JButton clearButton;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JTextField nameField;
+    private javax.swing.JButton saveButton;
+    private javax.swing.JTextField specializationField;
     // End of variables declaration//GEN-END:variables
 }

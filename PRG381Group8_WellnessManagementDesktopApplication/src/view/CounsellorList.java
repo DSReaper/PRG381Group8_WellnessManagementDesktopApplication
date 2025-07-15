@@ -4,6 +4,14 @@
  */
 package view;
 
+import model.Counsellor;
+import model.CounsellorDAO;
+
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import java.util.List;
+
+
 /**
  *
  * @author zacmy
@@ -17,7 +25,26 @@ public class CounsellorList extends javax.swing.JFrame {
      */
     public CounsellorList() {
         initComponents();
+        // Define custom table model
+        tableModel = new DefaultTableModel(new String[]{"ID", "Name", "Specialization", "Available"}, 0);
+        jTable1.setModel(tableModel);
+
+        // Load data
+        loadCounsellors();
     }
+    private void loadCounsellors() {
+    tableModel.setRowCount(0); // Clear existing rows
+    List<Counsellor> list = new CounsellorDAO().getAllCounsellors();
+    for (Counsellor c : list) {
+        tableModel.addRow(new Object[]{
+            c.getId(),
+            c.getName(),
+            c.getSpecialization(),
+            c.isAvailable() ? "Yes" : "No"
+        });
+    }
+}
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -28,21 +55,72 @@ public class CounsellorList extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        deletedButton = new javax.swing.JButton();
+        refreshButton = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
-        );
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        deletedButton.setText("Delete Selected");
+        deletedButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deletedButtonActionPerformed(evt);
+            }
+        });
+        getContentPane().add(deletedButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 300, -1, -1));
+
+        refreshButton.setText("Refresh");
+        refreshButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                refreshButtonActionPerformed(evt);
+            }
+        });
+        getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 300, -1, -1));
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(jTable1);
+
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 410, 280));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void deletedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deletedButtonActionPerformed
+        // TODO add your handling code here:
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow != -1) {
+            int id = (int) tableModel.getValueAt(selectedRow, 0);
+            int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this counselor?", "Confirm", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                boolean deleted = new CounsellorDAO().deleteCounsellor(id);
+                if (deleted) {
+                    JOptionPane.showMessageDialog(this, "Counselor deleted.");
+                    loadCounsellors();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Delete failed.");
+                }
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a row first.");
+        }
+    }//GEN-LAST:event_deletedButtonActionPerformed
+
+    private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
+        // TODO add your handling code here:
+        loadCounsellors();
+    }//GEN-LAST:event_refreshButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -68,7 +146,13 @@ public class CounsellorList extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new CounsellorList().setVisible(true));
     }
+    
+    private DefaultTableModel tableModel;
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton deletedButton;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable jTable1;
+    private javax.swing.JButton refreshButton;
     // End of variables declaration//GEN-END:variables
 }
