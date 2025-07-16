@@ -38,6 +38,7 @@ public class CounsellorForm extends javax.swing.JFrame {
         availabilityCheckBox = new javax.swing.JCheckBox();
         saveButton = new javax.swing.JButton();
         clearButton = new javax.swing.JButton();
+        label1 = new java.awt.Label();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -67,6 +68,8 @@ public class CounsellorForm extends javax.swing.JFrame {
             }
         });
 
+        label1.setText("label1");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -91,7 +94,11 @@ public class CounsellorForm extends javax.swing.JFrame {
                         .addComponent(saveButton)
                         .addGap(28, 28, 28)
                         .addComponent(clearButton)))
-                .addContainerGap(181, Short.MAX_VALUE))
+                .addContainerGap(182, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(label1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(142, 142, 142))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -112,7 +119,9 @@ public class CounsellorForm extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(saveButton)
                     .addComponent(clearButton))
-                .addGap(133, 133, 133))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(label1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         pack();
@@ -179,6 +188,7 @@ public class CounsellorForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private java.awt.Label label1;
     private javax.swing.JTextField nameField;
     private javax.swing.JButton saveButton;
     private javax.swing.JTextField specializationField;
