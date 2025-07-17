@@ -15,7 +15,7 @@ import java.util.ArrayList;
 
 public class CounsellorDAO {
     public boolean addCounsellor(Counsellor c) {
-        String sql = "INSERT INTO Counselors (name, specialization, availability) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO Counsellors (name, specialization, availability) VALUES (?, ?, ?)";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, c.getName());
             ps.setString(2, c.getSpecialization());
@@ -29,7 +29,7 @@ public class CounsellorDAO {
 
     public List<Counsellor> getAllCounsellors() {
         List<Counsellor> list = new ArrayList<>();
-        String sql = "SELECT * FROM Counselors";
+        String sql = "SELECT * FROM Counsellors";
         try (Connection conn = DBConnection.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 Counsellor c = new Counsellor(
@@ -47,7 +47,7 @@ public class CounsellorDAO {
     }
 
     public boolean updateCounsellor(Counsellor c) {
-        String sql = "UPDATE Counselors SET name=?, specialization=?, availability=? WHERE id=?";
+        String sql = "UPDATE Counsellors SET name=?, specialization=?, availability=? WHERE id=?";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, c.getName());
             ps.setString(2, c.getSpecialization());
@@ -61,7 +61,7 @@ public class CounsellorDAO {
     }
 
     public boolean deleteCounsellor(int id) {
-        String sql = "DELETE FROM Counselors WHERE id=?";
+        String sql = "DELETE FROM Counsellors WHERE id=?";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
@@ -73,7 +73,7 @@ public class CounsellorDAO {
     
     public List<String> getAvailableCounsellorNames() {
     List<String> names = new ArrayList<>();
-    String sql = "SELECT name FROM Counselors WHERE availability=true";
+    String sql = "SELECT name FROM Counsellors WHERE availability=true";
     try (Connection conn = DBConnection.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
         while (rs.next()) {
             names.add(rs.getString("name"));
@@ -84,7 +84,7 @@ public class CounsellorDAO {
     return names;
 }
     public Counsellor findByName(String name) {
-    String sql = "SELECT * FROM Counselors WHERE name = ?";
+    String sql = "SELECT * FROM Counsellors WHERE name = ?";
     try (Connection conn = DBConnection.getConnection();
          PreparedStatement ps = conn.prepareStatement(sql)) {
 

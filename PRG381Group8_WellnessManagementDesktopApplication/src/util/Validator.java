@@ -6,6 +6,8 @@ package util;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class Validator {
 
@@ -22,11 +24,11 @@ public class Validator {
         }
     }
 
-    public static boolean isValidTime(String time) {
+    public static boolean isValidTime(String timeStr) {
         try {
-            LocalTime.parse(time);
-            return true;
-        } catch (Exception e) {
+            LocalTime time = LocalTime.parse(timeStr, DateTimeFormatter.ofPattern("HH:mm"));
+            return true; // Valid 24-hour format (00:00 to 23:59)
+        } catch (DateTimeParseException e) {
             return false;
         }
     }

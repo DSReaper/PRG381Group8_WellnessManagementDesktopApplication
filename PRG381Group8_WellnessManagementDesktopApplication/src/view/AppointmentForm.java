@@ -14,11 +14,13 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.logging.Logger;
 
 public class AppointmentForm extends javax.swing.JFrame {
     
+    private final CounsellorDAO counsellorDAO = new CounsellorDAO();
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AppointmentForm.class.getName());
     private DefaultTableModel tableModel;
     private int selectedAppointmentId = -1;
@@ -29,6 +31,7 @@ public class AppointmentForm extends javax.swing.JFrame {
         initComponents();
         setLocationRelativeTo(null);
         setupTable();
+        loadStatuses();   
         loadCounsellors();
         loadAppointments();
         addActionListeners();
@@ -38,10 +41,17 @@ public class AppointmentForm extends javax.swing.JFrame {
         tableModel = new DefaultTableModel(new Object[]{"ID", "Student", "Counsellor", "Date", "Time", "Status"}, 0);
         tblAppointments.setModel(tableModel);
     }
+    
+    private void loadStatuses() {
+        cmbStatus.removeAllItems();
+        cmbStatus.addItem("Scheduled");
+        cmbStatus.addItem("Completed");
+        cmbStatus.addItem("Cancelled");
+    }
 
     private void loadCounsellors() {
         cmbCounsellors.removeAllItems();
-        List<Counsellor> counsellors = CounsellorDAO.getAllCounsellors();
+        List<Counsellor> counsellors = counsellorDAO.getAllCounsellors();
         for (Counsellor c : counsellors) {
             if (c.isAvailable()) {
                 cmbCounsellors.addItem(c.getName());
@@ -62,9 +72,16 @@ public class AppointmentForm extends javax.swing.JFrame {
 
     private void addActionListeners() {
         btnBook.addActionListener(e -> bookAppointment());
-        btnUpdate.addActionListener(e -> loadSelectedForUpdate());
-        btnCancel.addActionListener(e -> cancelAppointment());
+        btnUpdate.addActionListener(e -> updateAppointment()); // This now handles the update
+        btnCancel.addActionListener(e -> deleteAppointment());
         jButton4.addActionListener(e -> clearForm());
+
+        // Load form fields on row selection
+        tblAppointments.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                loadSelectedForUpdate();
+            }
+        });
     }
 
     private void bookAppointment() {
@@ -84,19 +101,42 @@ public class AppointmentForm extends javax.swing.JFrame {
             return;
         }
 
-        if (!Validator.isValidTime(time)) {
-            DialogUtil.showError("Time must be in format HH:MM.");
+        LocalDate appointmentDate = LocalDate.parse(date);
+        if (appointmentDate.isBefore(LocalDate.now())) {
+            DialogUtil.showError("Appointment date cannot be in the past.");
             return;
         }
 
-        Counsellor selected = CounsellorDAO.findByName(counsellorName);
+        if (!Validator.isValidTime(time)) {
+            DialogUtil.showError("Time must be in format HH:MM and within 24-hour range.");
+            return;
+        }
+
+        LocalTime appointmentTime;
+        try {
+            appointmentTime = LocalTime.parse(time);
+            if (appointmentTime.isAfter(LocalTime.of(23, 59))) {
+                DialogUtil.showError("Appointment time must be between 00:00 and 23:59.");
+                return;
+            }
+        } catch (DateTimeParseException e) {
+            DialogUtil.showError("Invalid time format.");
+            return;
+        }
+
+        Counsellor selected = counsellorDAO.findByName(counsellorName);
         if (selected == null) {
             DialogUtil.showError("Counsellor not found.");
             return;
         }
 
-        Appointment a = new Appointment(student, selected.getId(),
-                LocalDate.parse(date), LocalTime.parse(time), status);
+        // Check for time conflict with the same counsellor
+        if (!AppointmentDAO.isTimeSlotAvailable(selected.getId(), appointmentDate, appointmentTime)) {
+            DialogUtil.showError("This counsellor already has an appointment at the selected time.");
+            return;
+        }
+
+        Appointment a = new Appointment(student, selected.getId(), appointmentDate, appointmentTime, status);
 
         boolean result;
         if (selectedAppointmentId == -1) {
@@ -125,25 +165,48 @@ public class AppointmentForm extends javax.swing.JFrame {
             txtDate.setText(tableModel.getValueAt(row, 3).toString());
             jTextField1.setText(tableModel.getValueAt(row, 4).toString());
             cmbStatus.setSelectedItem(tableModel.getValueAt(row, 5).toString());
-        } else {
-            DialogUtil.showError("Please select an appointment to update.");
         }
     }
 
-    private void cancelAppointment() {
+
+    private void deleteAppointment() {
         int row = tblAppointments.getSelectedRow();
         if (row != -1) {
             int id = (int) tableModel.getValueAt(row, 0);
-            if (DialogUtil.confirm("Are you sure you want to cancel this appointment?")) {
-                if (AppointmentDAO.updateStatus(id, "Cancelled")) {
-                    DialogUtil.showInfo("Appointment cancelled.");
+            if (DialogUtil.confirm("Are you sure you want to permanently delete this appointment?")) {
+                if (AppointmentDAO.deleteAppointment(id)) {
+                    DialogUtil.showInfo("Appointment deleted successfully.");
                     loadAppointments();
+                    clearForm();
                 } else {
-                    DialogUtil.showError("Failed to cancel appointment.");
+                    DialogUtil.showError("Failed to delete appointment.");
                 }
             }
         } else {
-            DialogUtil.showError("Please select an appointment to cancel.");
+            DialogUtil.showError("Please select an appointment to delete.");
+        }
+    }
+    
+    private void updateAppointment() {
+        if (selectedAppointmentId == -1) {
+            DialogUtil.showError("Please select an appointment from the table first.");
+            return;
+        }
+
+        String status = (String) cmbStatus.getSelectedItem();
+
+        if (!Validator.isNotEmpty(status)) {
+            DialogUtil.showError("Please select a valid status.");
+            return;
+        }
+
+        boolean success = AppointmentDAO.updateStatus(selectedAppointmentId, status);
+        if (success) {
+            DialogUtil.showInfo("Appointment status updated.");
+            loadAppointments();
+            clearForm();
+        } else {
+            DialogUtil.showError("Failed to update appointment status.");
         }
     }
 
@@ -151,11 +214,18 @@ public class AppointmentForm extends javax.swing.JFrame {
         txtStudentName.setText("");
         txtDate.setText("YYYY-MM-DD");
         jTextField1.setText("HH:MM");
-        cmbCounsellors.setSelectedIndex(0);
-        cmbStatus.setSelectedIndex(0);
+
+        if (cmbCounsellors.getItemCount() > 0) {
+            cmbCounsellors.setSelectedIndex(0);
+        }
+
+        if (cmbStatus.getItemCount() > 0) {
+            cmbStatus.setSelectedIndex(0);
+        }
+
         selectedAppointmentId = -1;
     }
-
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -218,7 +288,7 @@ public class AppointmentForm extends javax.swing.JFrame {
 
         btnUpdate.setText("Update Appointment");
 
-        btnCancel.setText("Cancel Appointment");
+        btnCancel.setText("Delete Appointment");
 
         jButton4.setText("Clear");
 
@@ -228,13 +298,9 @@ public class AppointmentForm extends javax.swing.JFrame {
 
         lblTime.setText("Time:");
 
-        cmbCounsellors.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
         lblCounsellors.setText("Counsellors:");
 
         lblStatus.setText("Status:");
-
-        cmbStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -250,7 +316,7 @@ public class AppointmentForm extends javax.swing.JFrame {
                         .addComponent(btnUpdate)
                         .addGap(28, 28, 28)
                         .addComponent(btnCancel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 31, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
                         .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

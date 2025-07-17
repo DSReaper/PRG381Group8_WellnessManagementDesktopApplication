@@ -5,6 +5,8 @@
 package model;
 
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,6 +78,36 @@ public class AppointmentDAO {
             System.out.println("Error deleting appointment: " + e.getMessage());
             return false;
         }
+    }
+    
+    public static boolean isTimeSlotAvailable(int counsellorId, LocalDate date, LocalTime time) {
+        String sql = """
+            SELECT COUNT(*) FROM Appointments 
+            WHERE counsellor_id = ? 
+              AND appointment_date = ? 
+              AND appointment_time = ? 
+              AND status != 'Cancelled'
+        """;
+
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            // Convert LocalDate and LocalTime to java.sql.Date and java.sql.Time
+            java.sql.Date sqlDate = java.sql.Date.valueOf(date);
+            java.sql.Time sqlTime = java.sql.Time.valueOf(time);
+
+            ps.setInt(1, counsellorId);
+            ps.setDate(2, sqlDate);
+            ps.setTime(3, sqlTime);
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) == 0; // True if no conflict found
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
 
