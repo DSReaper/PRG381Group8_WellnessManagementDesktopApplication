@@ -8,6 +8,10 @@ package model;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+/**
+ * Represents an appointment between a student and a counsellor.
+ * Contains the necessary information to store, retrieve, and update appointments.
+ */
 public class Appointment {
     private int id;
     private String studentName;
@@ -17,6 +21,17 @@ public class Appointment {
     private LocalTime time;
     private String status;
 
+    /**
+     * Full constructor used when all appointment details including ID and counsellor name are known.
+     *
+     * @param id             Unique appointment ID.
+     * @param studentName    Name of the student.
+     * @param counsellorId   ID of the counsellor.
+     * @param counsellorName Name of the counsellor.
+     * @param date           Date of the appointment.
+     * @param time           Time of the appointment.
+     * @param status         Status of the appointment (e.g., Scheduled, Completed, Cancelled).
+     */
     public Appointment(int id, String studentName, int counsellorId, String counsellorName, LocalDate date, LocalTime time, String status) {
         this.id = id;
         this.studentName = studentName;
@@ -27,12 +42,29 @@ public class Appointment {
         this.status = status;
     }
 
+    /**
+     * Constructor used for creating new appointments before the database generates the ID.
+     *
+     * @param studentName   Name of the student.
+     * @param counsellorId  ID of the counsellor.
+     * @param date          Date of the appointment.
+     * @param time          Time of the appointment.
+     * @param status        Status of the appointment.
+     */
     public Appointment(String studentName, int counsellorId, LocalDate date, LocalTime time, String status) {
         this.studentName = studentName;
         this.counsellorId = counsellorId;
         this.date = date;
         this.time = time;
         this.status = status;
+    }
+   
+    /**
+     * Default no-argument constructor.
+     * Useful when creating an Appointment object for partial updates (e.g., updating status only).
+     */
+    public Appointment() {
+    // No-arg constructor for partial updates (e.g., update status, date, and time)
     }
 
     // Getters and setters

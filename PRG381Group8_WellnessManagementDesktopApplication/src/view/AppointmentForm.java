@@ -24,9 +24,8 @@ public class AppointmentForm extends javax.swing.JFrame {
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AppointmentForm.class.getName());
     private DefaultTableModel tableModel;
     private int selectedAppointmentId = -1;
-    /**
-     * Creates new form AppointmentForm
-     */
+
+    // Constructor: Initializes UI, table, and loads data
     public AppointmentForm() {
         initComponents();
         setLocationRelativeTo(null);
@@ -37,18 +36,21 @@ public class AppointmentForm extends javax.swing.JFrame {
         addActionListeners();
     }
     
+    // Configure table columns
     private void setupTable() {
         tableModel = new DefaultTableModel(new Object[]{"ID", "Student", "Counsellor", "Date", "Time", "Status"}, 0);
         tblAppointments.setModel(tableModel);
     }
     
+    // Load status values into the status combo box
     private void loadStatuses() {
         cmbStatus.removeAllItems();
         cmbStatus.addItem("Scheduled");
         cmbStatus.addItem("Completed");
         cmbStatus.addItem("Cancelled");
     }
-
+    
+    // Load available counsellors into the combo box
     private void loadCounsellors() {
         cmbCounsellors.removeAllItems();
         List<Counsellor> counsellors = counsellorDAO.getAllCounsellors();
@@ -58,7 +60,8 @@ public class AppointmentForm extends javax.swing.JFrame {
             }
         }
     }
-
+    
+    // Load appointments into the table
     private void loadAppointments() {
         tableModel.setRowCount(0);
         List<Appointment> appointments = AppointmentDAO.getAllAppointments();
@@ -70,13 +73,14 @@ public class AppointmentForm extends javax.swing.JFrame {
         }
     }
 
+    // Add listeners to buttons and table selection
     private void addActionListeners() {
         btnBook.addActionListener(e -> bookAppointment());
         btnUpdate.addActionListener(e -> updateAppointment()); // This now handles the update
         btnCancel.addActionListener(e -> deleteAppointment());
         jButton4.addActionListener(e -> clearForm());
 
-        // Load form fields on row selection
+        // Populate form fields when selecting a row in the table
         tblAppointments.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 loadSelectedForUpdate();
@@ -84,41 +88,46 @@ public class AppointmentForm extends javax.swing.JFrame {
         });
     }
 
+    // Book new appointment or update existing one
     private void bookAppointment() {
         String student = txtStudentName.getText().trim();
-        String date = txtDate.getText().trim();
-        String time = jTextField1.getText().trim();
+        String dateStr = txtDate.getText().trim();
+        String timeStr = jTextField1.getText().trim();
         String counsellorName = (String) cmbCounsellors.getSelectedItem();
         String status = (String) cmbStatus.getSelectedItem();
 
-        if (!Validator.isNotEmpty(student) || !Validator.isNotEmpty(date) || !Validator.isNotEmpty(time) || counsellorName == null) {
+         // Validate input fields
+        if (!Validator.isNotEmpty(student) || !Validator.isNotEmpty(dateStr) || !Validator.isNotEmpty(timeStr) || counsellorName == null) {
             DialogUtil.showError("Please fill in all fields.");
             return;
         }
 
-        if (!Validator.isValidDate(date)) {
+        if (!Validator.isValidDate(dateStr)) {
             DialogUtil.showError("Date must be in format YYYY-MM-DD.");
             return;
         }
 
-        LocalDate appointmentDate = LocalDate.parse(date);
-        if (appointmentDate.isBefore(LocalDate.now())) {
+        LocalDate date;
+        try {
+            date = LocalDate.parse(dateStr);
+        } catch (DateTimeParseException e) {
+            DialogUtil.showError("Invalid date format.");
+            return;
+        }
+
+        if (date.isBefore(LocalDate.now())) {
             DialogUtil.showError("Appointment date cannot be in the past.");
             return;
         }
 
-        if (!Validator.isValidTime(time)) {
-            DialogUtil.showError("Time must be in format HH:MM and within 24-hour range.");
+        if (!Validator.isValidTime(timeStr)) {
+            DialogUtil.showError("Time must be in format HH:MM and within 00:00–23:59.");
             return;
         }
 
-        LocalTime appointmentTime;
+        LocalTime time;
         try {
-            appointmentTime = LocalTime.parse(time);
-            if (appointmentTime.isAfter(LocalTime.of(23, 59))) {
-                DialogUtil.showError("Appointment time must be between 00:00 and 23:59.");
-                return;
-            }
+            time = LocalTime.parse(timeStr);
         } catch (DateTimeParseException e) {
             DialogUtil.showError("Invalid time format.");
             return;
@@ -130,32 +139,48 @@ public class AppointmentForm extends javax.swing.JFrame {
             return;
         }
 
-        // Check for time conflict with the same counsellor
-        if (!AppointmentDAO.isTimeSlotAvailable(selected.getId(), appointmentDate, appointmentTime)) {
-            DialogUtil.showError("This counsellor already has an appointment at the selected time.");
-            return;
-        }
-
-        Appointment a = new Appointment(student, selected.getId(), appointmentDate, appointmentTime, status);
-
         boolean result;
+
         if (selectedAppointmentId == -1) {
-            result = AppointmentDAO.addAppointment(a);
-            if (result) DialogUtil.showInfo("Appointment booked successfully.");
+            // Booking new appointment
+            if (!AppointmentDAO.isTimeSlotAvailable(selected.getId(), date, time)) {
+                DialogUtil.showError("This counsellor already has an appointment at the selected time.");
+                return;
+            }
+
+            Appointment newAppointment = new Appointment(student, selected.getId(), date, time, status);
+            result = AppointmentDAO.addAppointment(newAppointment);
+
+            if (result) {
+                DialogUtil.showInfo("Appointment booked successfully.");
+            } else {
+                DialogUtil.showError("Error booking appointment.");
+            }
+
         } else {
-            a.setId(selectedAppointmentId);
-            result = AppointmentDAO.updateStatus(a.getId(), status);
-            if (result) DialogUtil.showInfo("Appointment updated successfully.");
+            // Updating existing appointment: only update status, date, and time
+            Appointment updatedAppointment = new Appointment();
+            updatedAppointment.setId(selectedAppointmentId);
+            updatedAppointment.setStatus(status);
+            updatedAppointment.setDate(date);
+            updatedAppointment.setTime(time);
+
+            result = AppointmentDAO.updateAppointmentDetails(updatedAppointment);
+
+            if (result) {
+                DialogUtil.showInfo("Appointment updated successfully.");
+            } else {
+                DialogUtil.showError("Error updating appointment.");
+            }
         }
 
         if (result) {
             loadAppointments();
             clearForm();
-        } else {
-            DialogUtil.showError("Error saving appointment.");
         }
     }
 
+     // Load selected appointment into form fields
     private void loadSelectedForUpdate() {
         int row = tblAppointments.getSelectedRow();
         if (row != -1) {
@@ -168,7 +193,7 @@ public class AppointmentForm extends javax.swing.JFrame {
         }
     }
 
-
+    // Delete selected appointment permanently
     private void deleteAppointment() {
         int row = tblAppointments.getSelectedRow();
         if (row != -1) {
@@ -187,6 +212,7 @@ public class AppointmentForm extends javax.swing.JFrame {
         }
     }
     
+     // Update appointment's status, date, and time — not counsellor
     private void updateAppointment() {
         if (selectedAppointmentId == -1) {
             DialogUtil.showError("Please select an appointment from the table first.");
@@ -194,22 +220,63 @@ public class AppointmentForm extends javax.swing.JFrame {
         }
 
         String status = (String) cmbStatus.getSelectedItem();
+        String dateText = txtDate.getText().trim();
+        String timeText = jTextField1.getText().trim();
+        String counsellorName = (String) cmbCounsellors.getSelectedItem();
 
-        if (!Validator.isNotEmpty(status)) {
-            DialogUtil.showError("Please select a valid status.");
+        if (!Validator.isNotEmpty(status) || !Validator.isNotEmpty(dateText) || !Validator.isNotEmpty(timeText)) {
+            DialogUtil.showError("Please fill in all fields (status, date, and time).");
             return;
         }
 
-        boolean success = AppointmentDAO.updateStatus(selectedAppointmentId, status);
+        if (!Validator.isValidDate(dateText)) {
+            DialogUtil.showError("Date must be in format YYYY-MM-DD.");
+            return;
+        }
+
+        LocalDate date = LocalDate.parse(dateText);
+        if (date.isBefore(LocalDate.now())) {
+            DialogUtil.showError("Appointment date cannot be in the past.");
+            return;
+        }
+
+        if (!Validator.isValidTime(timeText)) {
+            DialogUtil.showError("Time must be in format HH:MM (00:00 to 23:59).");
+            return;
+        }
+
+        LocalTime time = LocalTime.parse(timeText);
+        Counsellor selected = counsellorDAO.findByName(counsellorName);
+        if (selected == null) {
+            DialogUtil.showError("Counsellor not found.");
+            return;
+        }
+
+        // Check if updated time slot is available
+        boolean isAvailable = AppointmentDAO.isTimeSlotAvailableExcludingCurrent(selected.getId(), date, time, selectedAppointmentId);
+        if (!isAvailable) {
+            DialogUtil.showError("Selected time slot is already booked with this counsellor.");
+            return;
+        }
+
+        // Perform update
+        Appointment updatedAppointment = new Appointment();
+        updatedAppointment.setId(selectedAppointmentId);
+        updatedAppointment.setDate(date);
+        updatedAppointment.setTime(time);
+        updatedAppointment.setStatus(status);
+
+        boolean success = AppointmentDAO.updateAppointmentDetails(updatedAppointment);
         if (success) {
-            DialogUtil.showInfo("Appointment status updated.");
+            DialogUtil.showInfo("Appointment updated successfully.");
             loadAppointments();
             clearForm();
         } else {
-            DialogUtil.showError("Failed to update appointment status.");
+            DialogUtil.showError("Failed to update appointment.");
         }
     }
-
+    
+    // Clear form inputs and reset state
     private void clearForm() {
         txtStudentName.setText("");
         txtDate.setText("YYYY-MM-DD");

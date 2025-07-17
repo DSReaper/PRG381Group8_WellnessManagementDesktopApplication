@@ -12,6 +12,12 @@ import java.util.List;
 
 public class AppointmentDAO {
 
+        /**
+     * Adds a new appointment to the database.
+     *
+     * @param a The appointment object to be added.
+     * @return true if the operation is successful; false otherwise.
+     */
     public static boolean addAppointment(Appointment a) {
         String sql = "INSERT INTO Appointments (student_name, counsellor_id, appointment_date, appointment_time, status) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
@@ -28,6 +34,11 @@ public class AppointmentDAO {
         }
     }
 
+        /**
+     * Retrieves all appointments along with the counsellor's name.
+     *
+     * @return A list of all appointment records.
+     */
     public static List<Appointment> getAllAppointments() {
         List<Appointment> list = new ArrayList<>();
         String sql = """
@@ -55,19 +66,41 @@ public class AppointmentDAO {
         return list;
     }
 
-    public static boolean updateStatus(int appointmentId, String newStatus) {
-        String sql = "UPDATE Appointments SET status = ? WHERE id = ?";
+        /**
+     * Updates an existing appointment's date, time, and status.
+     *
+     * @param a The appointment object containing updated values.
+     * @return true if update is successful; false otherwise.
+     */
+    public static boolean updateAppointmentDetails(Appointment a) {
+        String sql = """
+            UPDATE Appointments 
+            SET appointment_date = ?, appointment_time = ?, status = ?
+            WHERE id = ?
+        """;
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, newStatus);
-            ps.setInt(2, appointmentId);
+
+            ps.setDate(1, java.sql.Date.valueOf(a.getDate()));
+            ps.setTime(2, java.sql.Time.valueOf(a.getTime()));
+            ps.setString(3, a.getStatus());
+            ps.setInt(4, a.getId());
+
             return ps.executeUpdate() > 0;
+
         } catch (SQLException e) {
-            System.out.println("Error updating appointment status: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
 
+        /**
+     * Deletes an appointment from the database by ID.
+     *
+     * @param appointmentId The ID of the appointment to delete.
+     * @return true if deletion is successful; false otherwise.
+     */
     public static boolean deleteAppointment(int appointmentId) {
         String sql = "DELETE FROM Appointments WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -79,7 +112,15 @@ public class AppointmentDAO {
             return false;
         }
     }
-    
+ 
+        /**
+     * Checks if a given time slot is available for a counsellor on a specific date.
+     *
+     * @param counsellorId ID of the counsellor.
+     * @param date         Desired appointment date.
+     * @param time         Desired appointment time.
+     * @return true if the slot is available; false if there is a conflict.
+     */
     public static boolean isTimeSlotAvailable(int counsellorId, LocalDate date, LocalTime time) {
         String sql = """
             SELECT COUNT(*) FROM Appointments 
@@ -103,6 +144,44 @@ public class AppointmentDAO {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1) == 0; // True if no conflict found
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+        /**
+     * Checks if a time slot is available for a counsellor on a specific date and time,
+     * excluding the current appointment being updated.
+     *
+     * @param counsellorId        ID of the counsellor.
+     * @param date                Desired appointment date.
+     * @param time                Desired appointment time.
+     * @param excludeAppointmentId ID of the appointment to exclude from conflict check.
+     * @return true if the slot is available; false otherwise.
+     */
+    public static boolean isTimeSlotAvailableExcludingCurrent(int counsellorId, LocalDate date, LocalTime time, int excludeAppointmentId) {
+        String sql = """
+            SELECT COUNT(*) FROM Appointments 
+            WHERE counsellor_id = ? 
+              AND appointment_date = ? 
+              AND appointment_time = ? 
+              AND status != 'Cancelled'
+              AND id != ?
+        """;
+
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, counsellorId);
+            ps.setDate(2, java.sql.Date.valueOf(date));
+            ps.setTime(3, java.sql.Time.valueOf(time));
+            ps.setInt(4, excludeAppointmentId);
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) == 0;
             }
         } catch (SQLException e) {
             e.printStackTrace();
