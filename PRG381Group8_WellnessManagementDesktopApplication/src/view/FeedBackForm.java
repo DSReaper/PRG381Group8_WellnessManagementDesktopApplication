@@ -3,13 +3,19 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package view;
+import model.Feedback;
+import model.FeedbackDAO;
+import util.DialogUtil;
+import util.Validator;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.util.List;
+import java.util.logging.Logger;
 
-/**
- *
- * @author zacmy
- */
 public class FeedBackForm extends javax.swing.JFrame {
     
+    private final FeedbackDAO feedbackDAO = new FeedbackDAO();
+    private int selectedFeedbackId = -1;
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(FeedBackForm.class.getName());
 
     /**
@@ -17,6 +23,41 @@ public class FeedBackForm extends javax.swing.JFrame {
      */
     public FeedBackForm() {
         initComponents();
+        loadFeedbacks();
+
+        tblFeedback.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                populateFormFromTable();
+            }
+        });
+        
+        slRating.addChangeListener(e -> lblRatingValue.setText(String.valueOf(slRating.getValue())));
+    }
+    
+    private void loadFeedbacks() {
+        DefaultTableModel model = (DefaultTableModel) tblFeedback.getModel();
+        model.setRowCount(0);
+        List<Feedback> feedbacks = feedbackDAO.getAllFeedback();
+        for (Feedback fb : feedbacks) {
+            model.addRow(new Object[]{fb.getId(), fb.getStudentName(), fb.getRating(), fb.getComment()});
+        }
+    }
+    
+    private void clearForm() {
+        txtName.setText("");
+        slRating.setValue(1);
+        txtComment.setText("");
+        selectedFeedbackId = -1;
+    }
+    
+    private void populateFormFromTable() {
+        int row = tblFeedback.getSelectedRow();
+        if (row >= 0) {
+            selectedFeedbackId = (int) tblFeedback.getValueAt(row, 0);
+            txtName.setText(tblFeedback.getValueAt(row, 1).toString());
+            slRating.setValue((int) tblFeedback.getValueAt(row, 2));
+            txtComment.setText(tblFeedback.getValueAt(row, 3).toString());
+        }
     }
 
     /**
@@ -28,21 +69,223 @@ public class FeedBackForm extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblFeedback = new javax.swing.JTable();
+        lblName = new javax.swing.JLabel();
+        lblRating = new javax.swing.JLabel();
+        slRating = new javax.swing.JSlider();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        txtComment = new javax.swing.JTextArea();
+        lblComment = new javax.swing.JLabel();
+        txtName = new javax.swing.JTextField();
+        btnAdd = new javax.swing.JButton();
+        btnUpdate = new javax.swing.JButton();
+        btnDelete = new javax.swing.JButton();
+        btnClear = new javax.swing.JButton();
+        lblRatingValue = new javax.swing.JLabel();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        tblFeedback.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "ID", "Name", "Rating", "Comments"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        tblFeedback.getTableHeader().setReorderingAllowed(false);
+        jScrollPane1.setViewportView(tblFeedback);
+        if (tblFeedback.getColumnModel().getColumnCount() > 0) {
+            tblFeedback.getColumnModel().getColumn(0).setResizable(false);
+            tblFeedback.getColumnModel().getColumn(1).setResizable(false);
+            tblFeedback.getColumnModel().getColumn(2).setResizable(false);
+            tblFeedback.getColumnModel().getColumn(3).setResizable(false);
+        }
+
+        lblName.setText("Name:");
+
+        lblRating.setText("Rating:");
+
+        slRating.setMaximum(5);
+        slRating.setMinimum(1);
+        slRating.setValue(1);
+
+        txtComment.setColumns(20);
+        txtComment.setRows(5);
+        jScrollPane2.setViewportView(txtComment);
+
+        lblComment.setText("Comment:");
+
+        btnAdd.setText("Submit Feedback");
+        btnAdd.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddActionPerformed(evt);
+            }
+        });
+
+        btnUpdate.setText("Update Feedback");
+        btnUpdate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUpdateActionPerformed(evt);
+            }
+        });
+
+        btnDelete.setText("Delete Feedback");
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
+
+        btnClear.setText("Clear");
+        btnClear.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnClearActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblComment)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(lblRating)
+                                    .addComponent(lblName))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(txtName)
+                                    .addComponent(slRating, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lblRatingValue)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(btnAdd)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnUpdate)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnDelete)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 8, Short.MAX_VALUE)
+                        .addComponent(btnClear)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(13, 13, 13)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblName)
+                    .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(lblRating)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(slRating, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lblRatingValue)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(lblComment)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAdd)
+                    .addComponent(btnUpdate)
+                    .addComponent(btnDelete)
+                    .addComponent(btnClear))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        String name = txtName.getText().trim();
+        String comment = txtComment.getText().trim();
+        int rating = slRating.getValue();
+
+        if (!Validator.isNotEmpty(name) || !Validator.isNotEmpty(comment)) {
+            DialogUtil.showError("All fields are required.");
+            return;
+        }
+
+        Feedback fb = new Feedback(name, rating, comment);
+        if (feedbackDAO.submitFeedback(fb)) {
+            DialogUtil.showInfo("Feedback submitted successfully.");
+            loadFeedbacks();
+            clearForm();
+        } else {
+            DialogUtil.showError("Failed to submit feedback.");
+        }
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        if (selectedFeedbackId == -1) {
+            DialogUtil.showError("Please select a feedback to update.");
+            return;
+        }
+
+        String name = txtName.getText().trim();
+        String comment = txtComment.getText().trim();
+        int rating = slRating.getValue();
+
+        if (!Validator.isNotEmpty(name) || !Validator.isNotEmpty(comment)) {
+            DialogUtil.showError("All fields are required.");
+            return;
+        }
+
+        Feedback fb = new Feedback(selectedFeedbackId, name, rating, comment);
+        if (feedbackDAO.updateFeedback(fb)) {
+            DialogUtil.showInfo("Feedback updated successfully.");
+            loadFeedbacks();
+            clearForm();
+        } else {
+            DialogUtil.showError("Update failed.");
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        if (selectedFeedbackId == -1) {
+            DialogUtil.showError("Please select a feedback to delete.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Delete selected feedback?", "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            if (feedbackDAO.deleteFeedback(selectedFeedbackId)) {
+                DialogUtil.showInfo("Feedback deleted successfully.");
+                loadFeedbacks();
+                clearForm();
+            } else {
+                DialogUtil.showError("Delete failed.");
+            }
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+        clearForm();
+    }//GEN-LAST:event_btnClearActionPerformed
 
     /**
      * @param args the command line arguments
@@ -70,5 +313,19 @@ public class FeedBackForm extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAdd;
+    private javax.swing.JButton btnClear;
+    private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnUpdate;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JLabel lblComment;
+    private javax.swing.JLabel lblName;
+    private javax.swing.JLabel lblRating;
+    private javax.swing.JLabel lblRatingValue;
+    private javax.swing.JSlider slRating;
+    private javax.swing.JTable tblFeedback;
+    private javax.swing.JTextArea txtComment;
+    private javax.swing.JTextField txtName;
     // End of variables declaration//GEN-END:variables
 }
