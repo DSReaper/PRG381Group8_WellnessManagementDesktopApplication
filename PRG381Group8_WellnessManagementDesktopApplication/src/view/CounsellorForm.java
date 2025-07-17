@@ -3,23 +3,76 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package view;
-import javax.swing.JOptionPane;
-
+import model.Counsellor;
+import model.CounsellorDAO;
+import util.DialogUtil;
+import util.Validator;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.util.List;
 
 /**
- *
- * @author zacmy
+ * GUI form to manage counsellors.
+ * Allows adding, updating, deleting, and displaying counsellors from the database.
  */
 public class CounsellorForm extends javax.swing.JFrame {
     
+    // DAO for database operations
+    private final CounsellorDAO counsellorDAO = new CounsellorDAO();
+    
+    // Tracks selected counsellor's ID for update/delete
+    private int selectedCounsellorId = -1;  
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(CounsellorForm.class.getName());
 
     /**
-     * Creates new form CounsellorForm
+     * Constructor - Initializes form and loads data
      */
     public CounsellorForm() {
         initComponents();
+        loadCounsellors();
+        // Listener to populate form fields when a row is selected
+        tblCounsellors.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                populateFormFromSelectedRow();
+            }
+        });
     }
+    
+    /**
+     * Loads all counsellors from DB and populates the table
+     */
+    private void loadCounsellors() {
+        DefaultTableModel model = (DefaultTableModel) tblCounsellors.getModel();
+        model.setRowCount(0);
+        List<Counsellor> list = counsellorDAO.getAllCounsellors();
+        for (Counsellor c : list) {
+            model.addRow(new Object[]{c.getId(), c.getName(), c.getSpecialization(), c.isAvailable()});
+        }
+    }
+    
+    /**
+     * Clears all form fields and resets selected ID
+     */
+    private void clearForm() {
+        txtName.setText("");
+        txtSpecialization.setText("");
+        chkAvailability.setSelected(false);
+        selectedCounsellorId = -1;
+    }
+    
+    /**
+     * Populates the form fields when a table row is selected
+     */
+    private void populateFormFromSelectedRow() {
+        int row = tblCounsellors.getSelectedRow();
+        if (row >= 0) {
+            txtName.setText(tblCounsellors.getValueAt(row, 1).toString());
+            txtSpecialization.setText(tblCounsellors.getValueAt(row, 2).toString());
+            Object availability = tblCounsellors.getValueAt(row, 3);
+            chkAvailability.setSelected(Boolean.parseBoolean(availability.toString()));
+        }
+    }
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -30,45 +83,84 @@ public class CounsellorForm extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
-        nameField = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        specializationField = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
-        availabilityCheckBox = new javax.swing.JCheckBox();
-        saveButton = new javax.swing.JButton();
-        clearButton = new javax.swing.JButton();
-        label1 = new java.awt.Label();
+        lblName = new javax.swing.JLabel();
+        txtName = new javax.swing.JTextField();
+        lblSpecialization = new javax.swing.JLabel();
+        txtSpecialization = new javax.swing.JTextField();
+        lblAvailable = new javax.swing.JLabel();
+        chkAvailability = new javax.swing.JCheckBox();
+        btnAdd = new javax.swing.JButton();
+        btnClear = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblCounsellors = new javax.swing.JTable();
+        btnUpdate = new javax.swing.JButton();
+        btnDelete = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jLabel1.setText("Name:");
+        lblName.setText("Name:");
 
-        nameField.setText("jTextField1");
+        lblSpecialization.setText("Specialization:");
 
-        jLabel2.setText("Specialization:");
+        lblAvailable.setText("Available:");
 
-        specializationField.setText("jTextField1");
+        chkAvailability.setText("Yes:");
 
-        jLabel3.setText("Available:");
-
-        availabilityCheckBox.setText("Yes:");
-
-        saveButton.setText("Save");
-        saveButton.addActionListener(new java.awt.event.ActionListener() {
+        btnAdd.setText("Add Counesllor");
+        btnAdd.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                saveButtonActionPerformed(evt);
+                btnAddActionPerformed(evt);
             }
         });
 
-        clearButton.setText("Clear");
-        clearButton.addActionListener(new java.awt.event.ActionListener() {
+        btnClear.setText("Clear ");
+        btnClear.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                clearButtonActionPerformed(evt);
+                btnClearActionPerformed(evt);
             }
         });
 
-        label1.setText("label1");
+        tblCounsellors.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "ID", "Name", "Specialization", "Available"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        tblCounsellors.getTableHeader().setReorderingAllowed(false);
+        jScrollPane1.setViewportView(tblCounsellors);
+        if (tblCounsellors.getColumnModel().getColumnCount() > 0) {
+            tblCounsellors.getColumnModel().getColumn(0).setResizable(false);
+            tblCounsellors.getColumnModel().getColumn(1).setResizable(false);
+            tblCounsellors.getColumnModel().getColumn(2).setResizable(false);
+            tblCounsellors.getColumnModel().getColumn(3).setResizable(false);
+        }
+
+        btnUpdate.setText("Update Counsellor");
+        btnUpdate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUpdateActionPerformed(evt);
+            }
+        });
+
+        btnDelete.setText("Delete Counsellor");
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -76,86 +168,153 @@ public class CounsellorForm extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(nameField, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jLabel2)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(specializationField, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(25, 25, 25)
-                        .addComponent(availabilityCheckBox, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(lblSpecialization))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(7, 7, 7)
+                                .addComponent(lblAvailable, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(12, 12, 12)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(chkAvailability, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtSpecialization, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(47, 47, 47)
-                        .addComponent(saveButton)
-                        .addGap(28, 28, 28)
-                        .addComponent(clearButton)))
-                .addContainerGap(182, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(label1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(142, 142, 142))
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblName, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(btnAdd)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(btnUpdate)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnDelete)
+                                .addGap(18, 18, 18)
+                                .addComponent(btnClear, javax.swing.GroupLayout.DEFAULT_SIZE, 76, Short.MAX_VALUE)))))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(14, 14, 14)
+                .addGap(20, 20, 20)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(nameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                    .addComponent(lblName)
+                    .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(21, 21, 21)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(specializationField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                    .addComponent(lblSpecialization)
+                    .addComponent(txtSpecialization, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(availabilityCheckBox))
-                .addGap(30, 30, 30)
+                    .addComponent(lblAvailable)
+                    .addComponent(chkAvailability))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(saveButton)
-                    .addComponent(clearButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(label1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnAdd)
+                    .addComponent(btnUpdate)
+                    .addComponent(btnDelete)
+                    .addComponent(btnClear))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
-        String name = nameField.getText().trim();
-        String spec = specializationField.getText().trim();
-        boolean available = availabilityCheckBox.isSelected();
+    /**
+     * Adds a new counsellor to the database
+     */
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        String name = txtName.getText().trim();
+        String specialization = txtSpecialization.getText().trim();
+        boolean available = chkAvailability.isSelected();
 
-        if (name.isEmpty() || spec.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please fill in all fields.");
+         // Validation using utility class
+        if (!Validator.isNotEmpty(name) || !Validator.isNotEmpty(specialization)) {
+            DialogUtil.showError("Please fill in all fields.");
+            return;
+        }
+        
+        // Add to DB
+        Counsellor c = new Counsellor(name, specialization, available);
+        boolean result = counsellorDAO.addCounsellor(c);
+        if (result) {
+            DialogUtil.showInfo("Counsellor added successfully.");
+            loadCounsellors();
+            clearForm();
+        } else {
+            DialogUtil.showError("Failed to add counsellor.");
+        }
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    /**
+     * Clears the form when "Clear" is clicked
+     */
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+        clearForm();
+    }//GEN-LAST:event_btnClearActionPerformed
+
+    /**
+     * Updates a selected counsellor's information
+     */
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+                int selectedRow = tblCounsellors.getSelectedRow();
+        if (selectedRow == -1) {
+            DialogUtil.showError("Please select a counsellor to update.");
             return;
         }
 
-        model.Counsellor counsellor = new model.Counsellor(name, spec, available);
-        model.CounsellorDAO dao = new model.CounsellorDAO();
+        int id = (int) tblCounsellors.getValueAt(selectedRow, 0);
+        String name = txtName.getText().trim();
+        String spec = txtSpecialization.getText().trim();
+        boolean available = chkAvailability.isSelected();
 
-        if (dao.addCounsellor(counsellor)) {
-            JOptionPane.showMessageDialog(this, "Counselor added successfully!");
-            nameField.setText("");
-            specializationField.setText("");
-            availabilityCheckBox.setSelected(false);
-        } else {
-            JOptionPane.showMessageDialog(this, "Error adding counselor.");
+        // Validation
+        if (!Validator.isNotEmpty(name) || !Validator.isNotEmpty(spec)) {
+            DialogUtil.showError("Please fill in all fields.");
+            return;
         }
 
-    }//GEN-LAST:event_saveButtonActionPerformed
+        // Update in DB
+        Counsellor c = new Counsellor(id, name, spec, available);
+        if (counsellorDAO.updateCounsellor(c)) {
+            DialogUtil.showInfo("Counsellor updated.");
+            loadCounsellors();
+            clearForm();
+        } else {
+            DialogUtil.showError("Error updating counsellor.");
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
 
-    private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
-        nameField.setText("");
-        specializationField.setText("");
-        availabilityCheckBox.setSelected(false);
-    }//GEN-LAST:event_clearButtonActionPerformed
+    /**
+     * Deletes the selected counsellor from the database
+     */
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        int selectedRow = tblCounsellors.getSelectedRow();
+        if (selectedRow == -1) {
+            DialogUtil.showError("Please select a counsellor to delete.");
+            return;
+        }
+
+        int id = (int) tblCounsellors.getValueAt(selectedRow, 0);
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this counsellor?", "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            if (counsellorDAO.deleteCounsellor(id)) {
+                DialogUtil.showInfo("Counsellor deleted.");
+                loadCounsellors();
+                clearForm();
+            } else {
+                DialogUtil.showError("Error deleting counsellor.");
+            }
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
 
     /**
      * @param args the command line arguments
@@ -183,14 +342,17 @@ public class CounsellorForm extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox availabilityCheckBox;
-    private javax.swing.JButton clearButton;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private java.awt.Label label1;
-    private javax.swing.JTextField nameField;
-    private javax.swing.JButton saveButton;
-    private javax.swing.JTextField specializationField;
+    private javax.swing.JButton btnAdd;
+    private javax.swing.JButton btnClear;
+    private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnUpdate;
+    private javax.swing.JCheckBox chkAvailability;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lblAvailable;
+    private javax.swing.JLabel lblName;
+    private javax.swing.JLabel lblSpecialization;
+    private javax.swing.JTable tblCounsellors;
+    private javax.swing.JTextField txtName;
+    private javax.swing.JTextField txtSpecialization;
     // End of variables declaration//GEN-END:variables
 }
