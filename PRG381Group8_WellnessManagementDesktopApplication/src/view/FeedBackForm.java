@@ -17,14 +17,17 @@ public class FeedBackForm extends javax.swing.JFrame {
     private final FeedbackDAO feedbackDAO = new FeedbackDAO();
     private int selectedFeedbackId = -1;
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(FeedBackForm.class.getName());
-
+    private MainDashBoard dashboard;
+    
     /**
      * Creates new form FeedBackForm
      */
-    public FeedBackForm() {
+    public FeedBackForm(MainDashBoard dashboard) {
         initComponents();
         loadFeedbacks();
-
+        setTitle("Feedback");
+        this.dashboard = dashboard;
+        setLocationRelativeTo(null);
         tblFeedback.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 populateFormFromTable();
@@ -83,6 +86,7 @@ public class FeedBackForm extends javax.swing.JFrame {
         btnDelete = new javax.swing.JButton();
         btnClear = new javax.swing.JButton();
         lblRatingValue = new javax.swing.JLabel();
+        btnBack = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -156,6 +160,13 @@ public class FeedBackForm extends javax.swing.JFrame {
             }
         });
 
+        btnBack.setText("Back to Dashboard");
+        btnBack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBackActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -177,8 +188,13 @@ public class FeedBackForm extends javax.swing.JFrame {
                                     .addComponent(txtName)
                                     .addComponent(slRating, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE))))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lblRatingValue)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblRatingValue)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(btnBack))))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(btnAdd)
                         .addGap(18, 18, 18)
@@ -192,10 +208,15 @@ public class FeedBackForm extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(13, 13, 13)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblName)
-                    .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(13, 13, 13)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(lblName)
+                            .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(btnBack)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(lblRating)
@@ -287,6 +308,15 @@ public class FeedBackForm extends javax.swing.JFrame {
         clearForm();
     }//GEN-LAST:event_btnClearActionPerformed
 
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        this.dispose();  // Close current form
+        if (dashboard != null) {
+            dashboard.setVisible(true);   // Show dashboard again
+            dashboard.setState(JFrame.NORMAL);
+            dashboard.toFront();
+        }
+    }//GEN-LAST:event_btnBackActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -307,13 +337,11 @@ public class FeedBackForm extends javax.swing.JFrame {
             logger.log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new FeedBackForm().setVisible(true));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAdd;
+    private javax.swing.JButton btnBack;
     private javax.swing.JButton btnClear;
     private javax.swing.JButton btnDelete;
     private javax.swing.JButton btnUpdate;

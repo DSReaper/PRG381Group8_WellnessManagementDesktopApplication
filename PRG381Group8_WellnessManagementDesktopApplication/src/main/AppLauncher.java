@@ -7,7 +7,7 @@ package main;
 import javax.swing.SwingUtilities;
 import javax.swing.JOptionPane;
 import model.DBConnection;
-import view.MainDashboard;
+import view.MainDashBoard;
 import java.sql.Connection;
 import model.DatabaseInitializer;
 
@@ -25,7 +25,7 @@ public class AppLauncher {
             if (conn != null) {
                 System.out.println("Database connected.");
                 DatabaseInitializer.initialize(); // ← initialize schema & test data
-                new MainDashboard().setVisible(true);
+                new MainDashBoard().setVisible(true);
             } else {
                 JOptionPane.showMessageDialog(null,
                         "Could not connect to database.",

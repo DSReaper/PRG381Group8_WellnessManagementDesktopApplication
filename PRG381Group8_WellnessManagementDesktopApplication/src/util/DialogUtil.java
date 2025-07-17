@@ -4,6 +4,7 @@
  */
 package util;
 
+import java.awt.Component;
 import javax.swing.*;
 
 public class DialogUtil {
@@ -18,6 +19,11 @@ public class DialogUtil {
 
     public static boolean confirm(String message) {
         int choice = JOptionPane.showConfirmDialog(null, message, "Confirm", JOptionPane.YES_NO_OPTION);
+        return choice == JOptionPane.YES_OPTION;
+    }
+    
+    public static boolean confirmExit(Component parent) {
+        int choice = JOptionPane.showConfirmDialog(parent, "Are you sure you want to exit?", "Confirm Exit", JOptionPane.YES_NO_OPTION);
         return choice == JOptionPane.YES_OPTION;
     }
 }
